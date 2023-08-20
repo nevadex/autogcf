@@ -1,0 +1,37 @@
+package autogcf
+
+import (
+	"io"
+	"net/http"
+	"os"
+
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+)
+
+var (
+	dir            = "js"
+	paths          = []string{"site.js"}
+	local_paths    = []string{"site.js"}
+	content_types  = []string{"text/javascript"}
+	cache_controls = []string{"max-age=0"}
+)
+
+func init() {
+	functions.HTTP(dir, call)
+}
+
+func call(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path[1:]
+	for i := range paths {
+		p := paths[i]
+		if path == p {
+			file, _ := os.Open("./serverless_function_source_code/" + local_paths[i])
+			defer file.Close()
+			w.Header().Set("Content-Type", content_types[i])
+	        w.Header().Set("Cache-Control", cache_controls[i])
+			_, _ = io.Copy(w, file)
+			return
+		}
+	}
+	http.Error(w, "Not Found", http.StatusNotFound)
+}

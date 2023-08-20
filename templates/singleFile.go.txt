@@ -1,0 +1,27 @@
+package autogcf
+
+import (
+	"io"
+	"net/http"
+	"os"
+
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+)
+
+const (
+	path          = "index.html"
+	content_type  = "text/html"
+	cache_control = "max-age=0"
+)
+
+func init() {
+	functions.HTTP(path, call)
+}
+
+func call(w http.ResponseWriter, r *http.Request) {
+	file, _ := os.Open("./serverless_function_source_code/" + path)
+	defer file.Close()
+	w.Header().Set("Content-Type", content_type)
+	w.Header().Set("Cache-Control", cache_control)
+	_, _ = io.Copy(w, file)
+}
